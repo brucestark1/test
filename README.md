@@ -170,6 +170,26 @@ This repository includes sample HOCON configuration files for testing:
 - `production.conf` - Production config missing some keys (server.timeout, logging.rotation)
 - `staging.conf` - Staging config missing several keys (credentials, features, logging rotation)
 
+## Testing
+
+A comprehensive test suite is included to verify the script works correctly.
+
+### Running Tests
+
+```bash
+./tests/run_tests.sh
+```
+
+The test suite includes 9 tests covering:
+- Complete configurations (all keys present)
+- Partial configurations (some missing keys)
+- Minimal configurations (many missing keys)
+- Invalid HOCON syntax handling
+- Empty configuration files
+- Summary statistics accuracy
+
+See [tests/README.md](tests/README.md) for detailed test documentation.
+
 ## Exit Codes
 
 - `0` - Success

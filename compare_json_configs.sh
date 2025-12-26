@@ -126,15 +126,22 @@ total_files=0
 files_with_missing_keys=0
 
 while IFS= read -r config_file; do
-    total_files=$((total_files + 1))
     echo -e "${YELLOW}Checking: $config_file${NC}"
 
     # Validate HOCON format by attempting to convert to JSON
+    # Temporarily disable exit on error for validation
+    set +e
     json_content=$(hocon_to_json "$config_file" 2>&1)
-    if [ $? -ne 0 ]; then
+    validation_result=$?
+    set -e
+
+    if [ $validation_result -ne 0 ]; then
         echo -e "  ${RED}⨯ Invalid HOCON format, skipping${NC}\n"
         continue
     fi
+
+    # Only count files that pass validation
+    total_files=$((total_files + 1))
 
     missing_keys=()
 
