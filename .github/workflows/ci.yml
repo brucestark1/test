@@ -1,0 +1,53 @@
+name: CI Tests
+
+on:
+  push:
+    branches: [ main, master, claude/** ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.x'
+
+    - name: Install system dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y jq
+
+    - name: Install Python dependencies
+      run: |
+        pip3 install --upgrade pip
+        pip3 install pyhocon
+
+    - name: Verify dependencies
+      run: |
+        echo "Checking jq..."
+        jq --version
+        echo "Checking Python..."
+        python3 --version
+        echo "Checking pyhocon..."
+        python3 -c "import pyhocon; print(f'pyhocon version: {pyhocon.__version__}')"
+
+    - name: Make scripts executable
+      run: |
+        chmod +x compare_json_configs.sh
+        chmod +x tests/run_tests.sh
+
+    - name: Run test suite
+      run: |
+        ./tests/run_tests.sh
+
+    - name: Test script on sample configs
+      run: |
+        echo "Running script on sample configuration files..."
+        ./compare_json_configs.sh
