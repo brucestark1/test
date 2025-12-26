@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# JSON Configuration Comparison Script
-# Compares JSON config files against default.conf and identifies missing keys
+# HOCON Configuration Comparison Script
+# Compares HOCON config files against default.conf and identifies missing keys
 
 set -e
 
@@ -26,11 +26,47 @@ if ! command -v jq &> /dev/null; then
     exit 1
 fi
 
-# Function to extract all keys recursively from a JSON file
+# Check if Python 3 is installed
+if ! command -v python3 &> /dev/null; then
+    echo -e "${RED}Error: python3 is not installed. Please install Python 3 to use this script.${NC}"
+    exit 1
+fi
+
+# Check if pyhocon is installed
+if ! python3 -c "import pyhocon" 2>/dev/null; then
+    echo -e "${RED}Error: pyhocon is not installed. Please install pyhocon to use this script.${NC}"
+    echo "Install with: pip3 install pyhocon"
+    exit 1
+fi
+
+# Function to convert HOCON to JSON
+hocon_to_json() {
+    local file="$1"
+    python3 -c "
+import sys
+from pyhocon import ConfigFactory
+
+try:
+    conf = ConfigFactory.parse_file('$file')
+    import json
+    print(json.dumps(conf))
+except Exception as e:
+    sys.stderr.write(f'Error parsing HOCON: {e}\n')
+    sys.exit(1)
+"
+}
+
+# Function to extract all keys recursively from a HOCON file
 # Returns keys in dot notation (e.g., "parent.child.key")
 get_all_keys() {
     local file="$1"
-    jq -r '
+    local json_content=$(hocon_to_json "$file")
+
+    if [ $? -ne 0 ] || [ -z "$json_content" ]; then
+        return 1
+    fi
+
+    echo "$json_content" | jq -r '
         def flatten_keys:
             . as $in
             | reduce paths(scalars) as $path (
@@ -39,37 +75,42 @@ get_all_keys() {
             )
             | keys[];
         flatten_keys
-    ' "$file" 2>/dev/null | sort -u
+    ' 2>/dev/null | sort -u
 }
 
-# Function to check if a key exists in a JSON file
+# Function to check if a key exists in a HOCON file
 key_exists() {
     local file="$1"
     local key="$2"
+    local json_content=$(hocon_to_json "$file")
+
+    if [ $? -ne 0 ] || [ -z "$json_content" ]; then
+        return 1
+    fi
 
     # Convert dot notation to jq path
     local jq_path=$(echo "$key" | sed 's/\./","/g' | sed 's/^/["/' | sed 's/$/"]/')
 
-    jq -e "getpath($jq_path) != null" "$file" &>/dev/null
+    echo "$json_content" | jq -e "getpath($jq_path) != null" &>/dev/null
 }
 
-echo -e "${GREEN}=== JSON Configuration Comparison ===${NC}"
+echo -e "${GREEN}=== HOCON Configuration Comparison ===${NC}"
 echo -e "Default file: ${YELLOW}$DEFAULT_FILE${NC}\n"
 
 # Get all keys from default.conf
 echo "Extracting keys from $DEFAULT_FILE..."
 default_keys=$(get_all_keys "$DEFAULT_FILE")
 
-if [ -z "$default_keys" ]; then
-    echo -e "${RED}Error: No keys found in $DEFAULT_FILE or invalid JSON${NC}"
+if [ $? -ne 0 ] || [ -z "$default_keys" ]; then
+    echo -e "${RED}Error: No keys found in $DEFAULT_FILE or invalid HOCON format${NC}"
     exit 1
 fi
 
 key_count=$(echo "$default_keys" | wc -l)
 echo -e "Found ${GREEN}$key_count${NC} keys in $DEFAULT_FILE\n"
 
-# Find all JSON/conf files in current directory (excluding default.conf)
-config_files=$(find . -maxdepth 1 -type f \( -name "*.json" -o -name "*.conf" \) ! -name "$DEFAULT_FILE" -printf "%f\n" | sort)
+# Find all conf files in current directory (excluding default.conf)
+config_files=$(find . -maxdepth 1 -type f -name "*.conf" ! -name "$DEFAULT_FILE" -printf "%f\n" | sort)
 
 if [ -z "$config_files" ]; then
     echo -e "${YELLOW}No other configuration files found to compare${NC}"
@@ -88,9 +129,10 @@ while IFS= read -r config_file; do
     total_files=$((total_files + 1))
     echo -e "${YELLOW}Checking: $config_file${NC}"
 
-    # Validate JSON
-    if ! jq empty "$config_file" 2>/dev/null; then
-        echo -e "  ${RED}⨯ Invalid JSON format, skipping${NC}\n"
+    # Validate HOCON format by attempting to convert to JSON
+    json_content=$(hocon_to_json "$config_file" 2>&1)
+    if [ $? -ne 0 ]; then
+        echo -e "  ${RED}⨯ Invalid HOCON format, skipping${NC}\n"
         continue
     fi
 
