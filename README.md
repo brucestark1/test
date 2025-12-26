@@ -1,5 +1,8 @@
 # HOCON Configuration Comparison Script
 
+![CI Tests](https://github.com/brucestark1/test/workflows/CI%20Tests/badge.svg)
+![Multi-Platform Tests](https://github.com/brucestark1/test/workflows/Multi-Platform%20Tests/badge.svg)
+
 A bash script that compares multiple HOCON (Human-Optimized Config Object Notation) configuration files against a default configuration and identifies missing keys.
 
 ## Features
@@ -189,6 +192,43 @@ The test suite includes 9 tests covering:
 - Summary statistics accuracy
 
 See [tests/README.md](tests/README.md) for detailed test documentation.
+
+## Continuous Integration
+
+This project uses GitHub Actions for automated testing on every push and pull request.
+
+### CI Workflows
+
+**CI Tests** - Runs on Ubuntu with Python 3.x:
+- Installs all dependencies
+- Executes the full test suite
+- Validates script on sample configurations
+
+**Multi-Platform Tests** - Comprehensive testing:
+- Tests on Ubuntu and macOS
+- Tests with Python 3.8, 3.9, 3.10, 3.11, and 3.12
+- Ensures cross-platform compatibility
+
+### Viewing CI Results
+
+- Check the badges at the top of this README
+- View detailed results in the [Actions tab](../../actions)
+- See checks on pull requests
+
+### Local CI Simulation
+
+To test locally before pushing:
+
+```bash
+# Install dependencies
+sudo apt-get install jq  # or: brew install jq (macOS)
+pip3 install pyhocon
+
+# Run the same tests as CI
+./tests/run_tests.sh
+```
+
+See [.github/workflows/README.md](.github/workflows/README.md) for detailed CI documentation.
 
 ## Exit Codes
 
