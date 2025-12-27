@@ -1,0 +1,14 @@
+{
+  "hooks": [
+    {
+      "matcher": "*.scala",
+      "hooks": [
+        {
+          "type": "command",
+          "command": "bash",
+          "args": ["./hooks/check-metals.sh"]
+        }
+      ]
+    }
+  ]
+}

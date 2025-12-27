@@ -1,0 +1,11 @@
+{
+  "name": "Metals Scala LSP",
+  "id": "metals-scala-lsp",
+  "version": "1.0.0",
+  "description": "Scala language server integration with Metals for Claude Code",
+  "author": "brucestark1",
+  "homepage": "https://scalameta.org/metals/",
+  "license": "Apache-2.0",
+  "keywords": ["scala", "lsp", "metals", "language-server"],
+  "minClaudeCodeVersion": "2.0.74"
+}

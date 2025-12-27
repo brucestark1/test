@@ -1,0 +1,31 @@
+{
+  "scala": {
+    "command": "metals",
+    "args": ["-J-Dmetals.client=claude"],
+    "extensionToLanguage": {
+      ".scala": "scala",
+      ".sbt": "scala",
+      ".sc": "scala"
+    },
+    "transport": "stdio",
+    "initializationOptions": {
+      "isHttpEnabled": true,
+      "didFocusProvider": true,
+      "decorationProvider": true,
+      "inlineValueProvider": true,
+      "treeViewProvider": true
+    },
+    "settings": {
+      "metals": {
+        "enable": true,
+        "allowMultilineStringFormatting": false,
+        "superMethodLensesEnabled": true,
+        "excludedPackages": [],
+        "showImplicitArguments": true,
+        "showInferredType": true,
+        "showImplicitConversionsAndClasses": true
+      }
+    },
+    "maxRestarts": 5
+  }
+}
